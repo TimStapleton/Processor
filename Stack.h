@@ -1,7 +1,10 @@
 //---CONSTANTS---
-#define MAX_SIZE 10
+#include <math.h>
+
+#define MAX_SIZE 100
 #define CMD_NUMBERS 100
-#define zero 1e-6
+#define ZERO_ 1e-9
+#define EXCEPTION_ -100001
 
 //---MY_STACK---
 class Stack_t
@@ -10,13 +13,12 @@ class Stack_t
     double* arr_;
     int current_;
     int length_;
-    int size_;
 
     public:
 
     Stack_t ();
     Stack_t (const Stack_t&);
-    Stack_t (int size);
+    Stack_t (int length);
    ~Stack_t ();
 
     Stack_t& operator= (const Stack_t&);
@@ -40,32 +42,28 @@ class Stack_t
 
 //---CONSTRUCTORS---
 Stack_t::Stack_t ():
-    arr_ (new double [1]),
+    arr_ (new double [MAX_SIZE]),
     current_ (0),
-    length_ (1),
-    size_ (2)
+    length_ (MAX_SIZE)
 {
-	arr_ [0] = 0;
+	for(int i = 0; i < length_; i ++) arr_ [i] = 0;
 }
 
 Stack_t::Stack_t (const Stack_t& st):
     arr_ (new double [st.length_]),
     current_ (st.current_),
-    length_  ( st.length_),
-    size_    (   st.size_)
+    length_  ( st.length_)
 {
-    arr_ = new double [length_];
     for (int i = 0; i < length_; i ++)
     {
         arr_ [i] = st.arr_ [i];
     }
 }
 
-Stack_t::Stack_t (int size) :
-    arr_   (new double [size]),
+Stack_t::Stack_t (int length) :
+    arr_   (new double [length]),
     current_ (0),
-    length_ (size),
-    size_ (size)
+    length_ (length)
 {
     for (int i = 0; i < length_; i ++)
     {
@@ -82,7 +80,6 @@ Stack_t& Stack_t::operator= (const Stack_t& st)
 {
     current_    = st.current_;
     length_     =  st.length_;
-    size_       =    st.size_;
 
     delete [] arr_;
     arr_ = new double [length_];
@@ -95,57 +92,101 @@ Stack_t& Stack_t::operator= (const Stack_t& st)
 }
 
 //---METHODS---
-//>---PUSH/POP---
+//>---PUSH---
 bool Stack_t::Push (double a)
 {
+    if (current_ >= length_)
+    {
+        printf ("> EXCEPTION caught while\t_PUSH_\twas running;\n");
+        printf ("> > Stack is Full;\n\n");
+
+        return false;
+    }
     arr_ [current_] = a;
     current_ ++;
 
     return true;
 }
 
+//>---POP---
 double Stack_t::Pop ()
 {
-    if (current_ < 0) return 0;
+    if (current_ <= 0)
+    {
+        printf ("> EXCEPTION caught while\t_POP_\twas running;\n");
+        printf ("> > There are no elements in Stack;\n\n");
+
+        return EXCEPTION_;
+    }
 
     current_ --;
     double result = arr_ [current_];
+    arr_ [current_] = 0;
+
     return result;
 }
 
 //>---MATH---
 bool Stack_t::Add ()
 {
-    double a1 = Pop ();
-    double a2 = Pop ();
-    Push (a1 + a2);
+    double p1 = Pop ();
+    double p2 = Pop ();
+
+    if (fabs(p1 - EXCEPTION_) < ZERO_ || fabs(p2 - EXCEPTION_) < ZERO_)
+    {
+        printf ("> EXCEPTION caught while\t_ADD_\twas running;\n\n");
+        return false;
+    }
+
+    Push (p1 + p2);
 
     return true;
 }
 
 bool Stack_t::Sub ()
 {
-    double a1 = Pop ();
-    double a2 = Pop ();
-    Push (a1 - a2);
+    double p1 = Pop ();
+    double p2 = Pop ();
+
+    if (fabs(p1 - EXCEPTION_) < ZERO_ || fabs(p2 - EXCEPTION_) < ZERO_)
+    {
+        printf ("> EXCEPTION caught while\t_SUB_\twas running;\n\n");
+        return false;
+    }
+
+    Push (p1 - p2);
 
     return true;
 }
 
 bool Stack_t::Mul ()
 {
-    double a1 = Pop ();
-    double a2 = Pop ();
-    Push (a1 * a2);
+    double p1 = Pop ();
+    double p2 = Pop ();
+
+    if (fabs(p1 - EXCEPTION_) < ZERO_ || fabs(p2 - EXCEPTION_) < ZERO_)
+    {
+        printf ("> EXCEPTION caught while\t_MUL_\twas running;\n\n");
+        return false;
+    }
+
+    Push (p1 * p2);
 
     return true;
 }
 
 bool Stack_t::Div ()
 {
-    double a1 = Pop ();
-    double a2 = Pop ();
-    if (fabs(a1) > zero) Push (a1 / a2);
+    double p1 = Pop ();
+    double p2 = Pop ();
+
+    if (fabs(p1 - EXCEPTION_) < ZERO_ || fabs(p2 - EXCEPTION_) < ZERO_)
+    {
+        printf ("> EXCEPTION caught while\t_DIV_\twas running;\n\n");
+        return false;
+    }
+
+    if (fabs(p1) > ZERO_) Push (p1 / p2);
     else Push (0);
 
     return true;
@@ -153,21 +194,45 @@ bool Stack_t::Div ()
 
 bool Stack_t::Sin ()
 {
-    Push (sin (Pop ()/10));
+    double p = Pop ();
+
+    if (fabs(p - EXCEPTION_) < ZERO_)
+    {
+        printf ("> EXCEPTION caught while\t_SIN_\twas running;\n\n");
+        return false;
+    }
+
+    Push (sin (p/10));
 
     return true;
 }
 
 bool Stack_t::Cos ()
 {
-    Push (cos (Pop ()/10));
+    double p = Pop ();
+
+    if (fabs(p - EXCEPTION_) < ZERO_)
+    {
+        printf ("> EXCEPTION caught while\t_COS_\twas running;\n\n");
+        return false;
+    }
+
+    Push (cos (p/10));
 
     return true;
 }
 
 bool Stack_t::Sqrt ()
 {
-    Push (sqrt (Pop ()));
+    double p = Pop ();
+
+    if (fabs(p - EXCEPTION_) < ZERO_)
+    {
+        printf ("> EXCEPTION caught while\t_SQRT_\twas running;\n\n");
+        return false;
+    }
+
+    Push (sqrt (p));
 
     return true;
 }
@@ -186,26 +251,26 @@ bool Stack_t::OK ()
 
 bool Stack_t::Dump ()
 {
-    printf ("Hello, my name is @stack.\n");
-    txSleep (200);
-    printf ("I am fifteen-year old stack with lot of experience. :)\n\n");
-    txSleep (600);
+    printf ("> DUMP function called;\n");
 
-    printf ("My length is %d;\n", length_);
-    printf ("my elements :\n");
+    printf ("> > Length:\t%d;\n", length_);
+    printf ("> > Current:\t%d;\n", current_);
+    printf ("> > Elements:\n");
 
     for (int i = 0; i < length_; i ++)
     {
-        printf ("%d. %lg;\n", i, arr_ [i]);
+        if (i == current_) printf ("> > > %d. \t%lg; - current\n", i, arr_ [i]);
+        else               printf ("> > > %d. \t%lg;\n", i, arr_ [i]);
     }
 
-    txSleep (200);
-    printf ("Elements out of stack :\n");
+    printf ("> DUMP finished;\n\n");
+    //What for do i need it ?!
+    /*printf ("Elements out of stack :\n");
 
     for (int i = length_; i < MAX_SIZE; i ++)
     {
         printf ("%d. %lg;\n", i + 1, arr_ [i]);
-    }
+    }*/
 
     return true;
 }
