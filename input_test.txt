@@ -1,0 +1,26 @@
+push -100
+popax
+:0
+push 100
+push ax
+je 2
+
+push ax
+call 1
+draw
+
+push ax
+push 1
+add
+popax
+
+jmp :0
+
+:1
+push ax
+push ax
+mul
+ret
+
+:2
+end

@@ -1,0 +1,30 @@
+call 1
+jmp 5
+
+:1
+call 2
+call 3
+push ax
+push 0
+je 4
+call 1
+:4
+ret
+
+:2
+push dx
+push ax
+mul
+popdx
+ret
+
+:3
+push 1
+push ax
+sub
+popax
+ret
+
+:5
+end
+
